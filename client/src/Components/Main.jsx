@@ -34,7 +34,7 @@ function Main() {
           alignItems: "center",
           gap: 1,
           width: "100%",
-          maxWidth: 1000,
+          maxWidth: 800,
           px: 2,
         }}
       >
@@ -101,7 +101,7 @@ function Main() {
           placeholder="Enter your secure note..."
           multiline
           variant="filled"
-          rows={9}
+          rows={12}
           sx={{
             width: "100%",
             backgroundColor: "#ffffffff",
