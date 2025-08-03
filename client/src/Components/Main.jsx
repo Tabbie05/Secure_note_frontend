@@ -2,18 +2,23 @@ import React, { useState } from "react";
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { textinfo } from "../constants";
 import ParameterForm from './ParameterForm'
+import { useNavigate } from "react-router-dom";
 
 
 function Main() {
   const [toggleinfo, settoggleinfo] = useState(false);
   const [toggleform, settoggleform] = useState(false);
   
+  const navigate = useNavigate()
   const handleClickInfo = () => {
     settoggleinfo((prev) => !prev);
   };
   const handleShowForm = () => {
     settoggleform((prev)=>!prev)
   };
+  const handleRouteView = () => {
+    navigate("/viewnoteslink")
+  }
 
   
   return (
@@ -137,6 +142,7 @@ function Main() {
               },
               boxShadow: "none",
             }}
+            onClick={handleRouteView}
           >
             <Typography variant="h6">Create Note</Typography>
           </Button>
