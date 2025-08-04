@@ -1,26 +1,23 @@
 import React, { useState } from "react";
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
-import { textinfo } from "../constants";
-import ParameterForm from './ParameterForm'
 import { useNavigate } from "react-router-dom";
-
+import ParameterForm from "./ParameterForm";
+import AddIcon from "@mui/icons-material/Add";
+import { textinfo } from "../constants";
+import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 
 function Main() {
   const [toggleinfo, settoggleinfo] = useState(false);
   const [toggleform, settoggleform] = useState(false);
-  
-  const navigate = useNavigate()
-  const handleClickInfo = () => {
-    settoggleinfo((prev) => !prev);
-  };
-  const handleShowForm = () => {
-    settoggleform((prev)=>!prev)
-  };
-  const handleRouteView = () => {
-    navigate("/viewnoteslink")
-  }
+  const [toggleaddfunc, settoggleaddfunc] = useState(false);
 
-  
+  const navigate = useNavigate();
+
+  const handleClickInfo = () => settoggleinfo((prev) => !prev);
+  const handleShowForm = () => settoggleform((prev) => !prev);
+  const handletoggleadd = () => settoggleaddfunc((prev) => !prev);
+  const handleRouteView = () => navigate("/viewnoteslink");
+
   return (
     <Box
       sx={{
@@ -29,7 +26,7 @@ function Main() {
         alignItems: "flex-start",
         minHeight: "100vh",
         backgroundColor: "#c2bfbfff",
-        padding: 2,
+        p: 2,
       }}
     >
       <Box
@@ -39,8 +36,9 @@ function Main() {
           alignItems: "center",
           gap: 1,
           width: "100%",
-          maxWidth: 800,
+          maxWidth: toggleaddfunc ? 900 : 800,
           px: 2,
+          transition: "all 0.3s ease",
         }}
       >
         {/* Top Bar */}
@@ -49,42 +47,66 @@ function Main() {
             display: "flex",
             justifyContent: "space-between",
             width: "100%",
+            alignItems: "center",
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h4" fontWeight="bold">
             New Note
           </Typography>
-          <Button
-            variant="outlined"
-            sx={{
-              backgroundColor: "#ffffffff",
-              borderColor: "black",
-              color: "black",
-              "&:hover": {
+
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={handleClickInfo}
+              sx={{
+                backgroundColor: "#fff",
                 borderColor: "black",
-              },
-            }}
-            onClick={handleClickInfo}
-          >
-            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-              ?
-            </Typography>
-          </Button>
+                color: "black",
+                height: 50,
+                fontWeight: "bold",
+                fontSize: 18,
+                px: 2,
+                "&:hover": {
+                  borderColor: "black",
+                },
+              }}
+            >
+              <QuestionMarkIcon />
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handletoggleadd}
+              sx={{
+                backgroundColor: "#fff",
+                borderColor: "black",
+                color: "black",
+                fontSize: "1.25rem",
+                fontWeight: "bold",
+
+                px: 2,
+                "&:hover": {
+                  borderColor: "black",
+                },
+              }}
+            >
+              <AddIcon />
+            </Button>
+          </Box>
         </Box>
 
-        {/* Info Box */}
         {toggleinfo && (
           <Paper
             elevation={3}
             sx={{
-              backgroundColor: "#fff8e1", // soft yellow
+              backgroundColor: "#fff8e1",
               borderRadius: 2,
               p: 2,
               mt: 1,
               width: "100%",
-              maxWidth: 800,
-              maxHeight: 220,
+              maxWidth: toggleaddfunc ? 900 : 770,
               overflowY: "auto",
+              maxHeight: 220,
               transition: "transform 0.3s ease",
               "&:hover": {
                 transform: "scale(1.01)",
@@ -92,37 +114,98 @@ function Main() {
               },
             }}
           >
-            {textinfo.split("\n").map((line, index) => (
-              <Typography key={index} variant="body2" sx={{ mb: 0.8 }}>
-                {line}
-              </Typography>
-            ))}
+            <Typography variant="body2" sx={{ mb: 0.8 }}>
+              {textinfo}
+            </Typography>
           </Paper>
         )}
 
-        {/* TextField */}
-        <TextField
-          id="secure-note-input"
-          placeholder="Enter your secure note..."
-          multiline
-          variant="filled"
-          rows={12}
+        {/* TextArea + Side Buttons */}
+        <Box
           sx={{
+            display: "flex",
             width: "100%",
-            backgroundColor: "#ffffffff",
-            borderRadius: 2,
-            boxShadow: 4,
-            input: {
-              color: "#2C3E50",
-            },
-            "& .MuiFilledInput-root": {
-              fontSize: "1.25rem",
-            },
+            gap: 2,
+            mt: 1,
+            alignItems: "flex-start",
           }}
-        />
-        
+        >
+          <TextField
+            multiline
+            rows={12}
+            variant="filled"
+            placeholder="Enter your secure note..."
+            fullWidth
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: 2,
+              boxShadow: 4,
+              "& .MuiFilledInput-root": {
+                fontSize: "1.25rem",
+                color: "#2C3E50",
+              },
+            }}
+          />
 
-        {toggleform &&  <ParameterForm/>}
+          {toggleaddfunc && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                mt: "6px",
+              }}
+            >
+              <Button
+                variant="outlined"
+                sx={{
+                  backgroundColor: "#fff",
+                  borderColor: "black",
+                  color: "black",
+                  fontSize: "1.5rem",
+                  "&:hover": {
+                    borderColor: "black",
+                  },
+                }}
+              >
+                😊
+              </Button>
+              <Button
+                variant="outlined"
+                sx={{
+                  backgroundColor: "#fff",
+                  borderColor: "black",
+                  color: "black",
+                  fontSize: "1.5rem",
+                  "&:hover": {
+                    borderColor: "black",
+                  },
+                }}
+              >
+                ✏️
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {/* Parameter Form */}
+        {toggleform && (
+          <Box
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: 2,
+              p: 2,
+              mt: 1,
+              width: "100%",
+              boxShadow: 3,
+            }}
+          >
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              Parameters
+            </Typography>
+            <ParameterForm />
+          </Box>
+        )}
 
         {/* Bottom Buttons */}
         <Box
@@ -130,36 +213,44 @@ function Main() {
             display: "flex",
             justifyContent: "space-between",
             width: "100%",
+            mt: 2,
           }}
         >
           <Button
             variant="contained"
+            onClick={handleRouteView}
             sx={{
               backgroundColor: "#43464bff",
-              color: "#FFFFFF",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: 18,
               "&:hover": {
                 backgroundColor: "#252525ff",
               },
-              boxShadow: "none",
+              px: 3,
+              py: 1.5,
             }}
-            onClick={handleRouteView}
           >
-            <Typography variant="h6">Create Note</Typography>
+            Create Note
           </Button>
 
           <Button
             variant="outlined"
+            onClick={handleShowForm}
             sx={{
+              backgroundColor: "#fff",
               borderColor: "black",
-              backgroundColor: "#ffffffff",
               color: "black",
+              fontWeight: "bold",
+              fontSize: 18,
+              px: 3,
+              py: 1.5,
               "&:hover": {
                 borderColor: "black",
               },
             }}
-            onClick={handleShowForm}
           >
-            <Typography variant="h6">{toggleform ? "Disable Options" : "Show Parameters"}</Typography>
+            {toggleform ? "Disable Options" : "Show Parameters"}
           </Button>
         </Box>
       </Box>

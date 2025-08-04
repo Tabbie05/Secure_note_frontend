@@ -33,7 +33,7 @@ function ParameterForm() {
       <Box
         sx={{
           width: "100%",
-          maxWidth: 900,
+          maxWidth: 800,
           p: 3,
         }}
       >
