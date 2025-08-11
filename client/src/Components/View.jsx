@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -7,15 +7,22 @@ import {
   Paper,
   Stack,
 } from "@mui/material";
+import { copytextnote } from "../constants"; // adjust path as needed
 
 function View() {
+  const [showInfo, setShowInfo] = useState(false);
+
+  const handleClickInfo = () => {
+    setShowInfo((prev) => !prev);
+  };
+
   return (
     <Box
       sx={{
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        minHeight: "100vh",
+        minHeight: "90vh",
         backgroundColor: "#c2bfbfff",
         padding: 2,
       }}
@@ -38,7 +45,7 @@ function View() {
 
           <Button
             variant="outlined"
-            //onClick={handleClickInfo}
+            onClick={handleClickInfo} 
             sx={{
               minWidth: "40px",
               width: "70px",
@@ -60,6 +67,22 @@ function View() {
             </Typography>
           </Button>
         </Stack>
+
+        {showInfo && (
+          <Paper
+            elevation={3}
+            sx={{
+              mt: 2,
+              p: 2,
+              backgroundColor: "#fffde7", // soft yellow
+              borderLeft: "5px solid #ffc107",
+              fontSize: "1rem",
+            }}
+          >
+            {copytextnote}
+          </Paper>
+        )}
+
         <TextField
           fullWidth
           variant="outlined"
@@ -89,13 +112,14 @@ function View() {
           sx={{
             mt: 2,
             p: 2,
-            fontStyle: "italic", // use `fontStyle`, not `font`
-            fontSize: "1rem", // increase font size a little
-            backgroundColor: "#fff8e1", // optional soft background
+            fontStyle: "italic",
+            fontSize: "1rem",
+            backgroundColor: "#fff8e1",
           }}
         >
           The note will self-destruct after reading it.
         </Paper>
+
         <Box sx={{ width: "100%", mt: 2 }}>
           <Stack
             direction="row"
@@ -110,7 +134,7 @@ function View() {
                   color: "white",
                   border: "black",
                   "&:hover": {
-                    bgcolor: "#4d4d4d", // darker gray on hover
+                    bgcolor: "#4d4d4d",
                     borderColor: "gray",
                   },
                 }}
@@ -124,7 +148,7 @@ function View() {
                   color: "white",
                   border: "black",
                   "&:hover": {
-                    bgcolor: "#4d4d4d", // darker gray on hover
+                    bgcolor: "#4d4d4d",
                     borderColor: "gray",
                   },
                 }}

@@ -12,6 +12,7 @@ function Main() {
   const [toggleform, settoggleform] = useState(false);
   const [toggleaddfunc, settoggleaddfunc] = useState(false);
   const [toggleemojipicker, settoggleemojipicker] = useState(false);
+  const [text, settext] = useState("")
 
   const navigate = useNavigate();
 
@@ -24,17 +25,17 @@ function Main() {
   // Handle emoji clicks
   const onEmojiClick = (emojiData, event) => {
     console.log("Emoji clicked:", emojiData);
-    // You can add logic to insert emoji into your TextField here
-    settoggleemojipicker(false); // Close picker after selection
+    settext((prev)=> prev + emojiData.emoji)
+    settoggleemojipicker(false); 
   };
-
+  console.log(text)
   return (
     <Box
       sx={{
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        minHeight: "100vh",
+        minHeight: "90vh",
         backgroundColor: "#c2bfbfff",
         p: 2,
         position: "relative", // For absolute positioning of emoji picker
@@ -109,28 +110,52 @@ function Main() {
 
         {/* Info Panel */}
         {toggleinfo && (
-          <Paper
-            elevation={3}
-            sx={{
-              backgroundColor: "#fff8e1",
-              borderRadius: 2,
-              p: 2,
-              mt: 1,
-              width: "100%",
-              overflowY: "auto",
-              maxHeight: 220,
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "scale(1.01)",
-                boxShadow: 6,
-              },
-            }}
-          >
-            <Typography variant="body2" sx={{ mb: 0.8 }}>
-              {textinfo}
-            </Typography>
-          </Paper>
-        )}
+  <Paper
+    elevation={3}
+    sx={{
+      backgroundColor: "#fff8e1",
+      borderRadius: 2,
+      p: 2,
+      mt: 1,
+      width: "100%",
+      overflowY: "auto",
+      maxHeight: 240,
+      transition: "all 0.3s ease",
+      borderLeft: "5px solid #ffc107", // Yellow line
+      "&:hover": {
+        transform: "scale(1.01)",
+        boxShadow: 6,
+      },
+    }}
+  >
+    <Box sx={{ pl: 1 }}>
+      <Typography variant="body2" paragraph>
+        {textinfo.intro}
+      </Typography>
+
+      <ol style={{ paddingLeft: "1.5em", marginTop: 0 }}>
+        {textinfo.steps.map((step, index) => (
+          <li key={index}>
+            <Typography variant="body2">{step}</Typography>
+          </li>
+        ))}
+      </ol>
+
+      <Typography variant="body2" paragraph sx={{ mt: 1 }}>
+        {textinfo.outro}
+      </Typography>
+
+      <ul style={{ paddingLeft: "1.5em", marginTop: 0 }}>
+        {textinfo.options.map((option, index) => (
+          <li key={index}>
+            <Typography variant="body2">{option}</Typography>
+          </li>
+        ))}
+      </ul>
+    </Box>
+  </Paper>
+)}
+
 
         {/* Main Content Area */}
         <Box
@@ -157,6 +182,8 @@ function Main() {
                 borderRadius: 2,
               },
             }}
+            value={text}
+            onChange={(e)=>settext(e.target.value)}
           />
 
           {/* Side Action Buttons - Positioned absolutely */}
