@@ -1,8 +1,8 @@
 import React from 'react'
 import Navbar from './Components/Navbar'
-import Main from './Components/Main'
 import View from './Components/View'
 import { Route, Routes } from 'react-router-dom'
+import NoteForm from './Components/NoteForm'
 
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
     <>
     <Navbar />
      <Routes>
-      <Route path='/' element={<Main/>}/>
+      <Route path='/' element={<NoteForm/>}/>
       <Route path="/viewnoteslink" element={<View />}/>
       </Routes> 
     </>
