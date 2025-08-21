@@ -25,7 +25,7 @@ const notesSchema = mongoose.Schema({
   },
   destroyAfter: {
     type: String,
-    enum: ["after reading", "1 hour", "24 hours", "7 days", "30 days"],
+    enum: ["After reading", "After 1 hour", "After 24 hours", "After 7 days", "After 30 days"],
   },
   notificationEmail: {
     type: String,
