@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -21,7 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 import EmojiPicker from "emoji-picker-react";
 import { expirationOptions, textinfo } from "../constants";
-
+import axios from "axios";
 const NoteForm = () => {
   const [toggleinfo, settoggleinfo] = useState(false);
   const [toggleform, settoggleform] = useState(false);
@@ -76,10 +76,29 @@ const NoteForm = () => {
         linkTitle: "",
       }}
       validationSchema={Yupschema}
-      onSubmit={(values) => {
-        console.log("Final Submit", values);
-        // call API here
-        navigate("/viewnoteslink");
+      onSubmit={async (values, { setSubmitting }) => {
+        const payload = {
+          content: values.content,
+          destroyAfter: values.destroyAfter,
+          notificationEmail: values.notificationEmail,
+          showWithoutConfirmation: values.showWithoutConfirmation,
+          linkTitle: values.linkTitle,
+          passwordHash: values.password,
+        };
+        try {
+          const res = await axios.post(
+            "http://localhost:3000/api/notes",
+            payload
+          );
+
+          const gen_link = `http://localhost:5173/${res.data.noteId}`;
+          console.log(gen_link);
+          navigate("/viewnoteslink", { state: { link: gen_link } });
+        } catch (error) {
+          console.error("Failed to create note:", error);
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
       {({
@@ -257,9 +276,7 @@ const NoteForm = () => {
                       variant="outlined"
                       onClick={handletoggleEmopicker}
                       sx={{
-                        backgroundColor: toggleemojipicker
-                          ? "#fff3e0"
-                          : "#fff",
+                        backgroundColor: toggleemojipicker ? "#fff3e0" : "#fff",
                         borderColor: toggleemojipicker ? "#ff9800" : "#ddd",
                         color: "black",
                         fontSize: "1.2rem",
@@ -284,8 +301,7 @@ const NoteForm = () => {
                         color: "black",
                         fontSize: "1.2rem",
                         minWidth: 44,
-                        fontSize: "1.2rem",
-                        minWidth: 44,
+
                         height: 44,
                         boxShadow: 2,
                         transition: "all 0.2s ease",
@@ -449,7 +465,8 @@ const NoteForm = () => {
                       Destruction notification
                     </Typography>
                     <Typography variant="body2" sx={{ color: "gray", mb: 2 }}>
-                      E-mail to receive notification of the destruction of the note.
+                      E-mail to receive notification of the destruction of the
+                      note.
                     </Typography>
                     <Stack
                       spacing={2}
@@ -469,8 +486,7 @@ const NoteForm = () => {
                           Boolean(errors.notificationEmail)
                         }
                         helperText={
-                          touched.notificationEmail &&
-                          errors.notificationEmail
+                          touched.notificationEmail && errors.notificationEmail
                         }
                       />
                       <TextField

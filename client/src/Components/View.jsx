@@ -7,10 +7,13 @@ import {
   Paper,
   Stack,
 } from "@mui/material";
-import { copytextnote } from "../constants"; // adjust path as needed
+import { copytextnote } from "../constants"; 
+import { useLocation } from "react-router-dom";
 
 function View() {
   const [showInfo, setShowInfo] = useState(false);
+  const location = useLocation();
+  const link = location.state?.link;
 
   const handleClickInfo = () => {
     setShowInfo((prev) => !prev);
@@ -88,7 +91,7 @@ function View() {
           variant="outlined"
           disabled
           id="outlined-disabled"
-          defaultValue="https://yourapp.com/note/abc123#supersecret"
+          value={link}
           InputProps={{
             sx: {
               fontSize: "1.2rem",
