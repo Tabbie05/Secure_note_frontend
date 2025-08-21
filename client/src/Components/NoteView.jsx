@@ -1,7 +1,19 @@
 import { Box, Paper, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
+import { useEffect } from "react";
+import axios from "axios";
+import { useParams } from "react-router-dom";
 
 function NoteView() {
+  const [content, setcontent] = useState("");
+  const { id } = useParams();
+  useEffect(() => {
+    const data = axios
+      .get(`http://localhost:3000/api/notes/${id}`)
+      .then((res) => setcontent(res.data.data.content))
+      .catch((err) => console.log(err));
+  }, []);
+  console.log(content);
   return (
     <Box
       sx={{
@@ -35,12 +47,12 @@ function NoteView() {
         </Box>
 
         <Paper
-          elevation={3}
+          elevation={15}
           sx={{
             p: 3,
             minHeight: "350px",
             borderRadius: 2,
-
+            fontSize:25,
             fontStyle: "italic",
             textAlign: "left",
             display: "flex",
@@ -48,7 +60,7 @@ function NoteView() {
             justifyContent: "flex-start",
           }}
         >
-          Sample note content goes here...
+          {content}
         </Paper>
       </Box>
     </Box>
