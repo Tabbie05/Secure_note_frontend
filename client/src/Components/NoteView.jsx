@@ -1,19 +1,44 @@
+import React, { useState, useEffect } from "react";
 import { Box, Paper, Typography } from "@mui/material";
-import React, { useState } from "react";
-import { useEffect } from "react";
-import axios from "axios";
 import { useParams } from "react-router-dom";
+import axios from "axios";
+import AfterView from "./AfterView";
 
 function NoteView() {
-  const [content, setcontent] = useState("");
   const { id } = useParams();
+  const [content, setContent] = useState("");
+  const [isDestroyed, setIsDestroyed] = useState(false);
+  const [hasShownNote, setHasShownNote] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const data = axios
+    axios
       .get(`http://localhost:3000/api/notes/${id}`)
-      .then((res) => setcontent(res.data.data.content))
-      .catch((err) => console.log(err));
-  }, []);
-  console.log(content);
+      .then((res) => {
+        const note = res.data.data;
+        setContent(note.content);
+        setIsDestroyed(note.destroy === true);
+        setHasShownNote(true);
+      })
+      .catch((err) => {
+        if (err.response && err.response.status === 410) {
+          setIsDestroyed(true);
+        } else {
+          console.error(err);
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [id]);
+
+  if (loading) return <div>Loading...</div>;
+
+  // Show content once, even if destroy === true (if not already shown)
+  if (isDestroyed && !hasShownNote) {
+    return <AfterView />;
+  }
+
   return (
     <Box
       sx={{
@@ -23,7 +48,7 @@ function NoteView() {
         display: "flex",
         justifyContent: "center",
         p: 3,
-        pt: 5, // adds space below Navbar
+        pt: 5,
       }}
     >
       <Box
@@ -36,15 +61,8 @@ function NoteView() {
         }}
       >
         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-          Contents of the Note.
+          📝Contents of the Note.
         </Typography>
-
-        <Box sx={{ backgroundColor: "#ffde71ff", p: 2, borderRadius: 2 }}>
-          <Typography>
-            This note has been deleted. If you need to save the text, copy it
-            before closing this window.
-          </Typography>
-        </Box>
 
         <Paper
           elevation={15}
@@ -52,7 +70,7 @@ function NoteView() {
             p: 3,
             minHeight: "350px",
             borderRadius: 2,
-            fontSize:25,
+            fontSize: 25,
             fontStyle: "italic",
             textAlign: "left",
             display: "flex",
