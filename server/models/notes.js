@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+//if delafter == after read  flag true return
+// swutch case if flag true then reutrn u saw a;ready
+
+//7day dat.now or createdat ko compare kregee if km h toh 
 
 const notesSchema = mongoose.Schema({
   noteId: {
