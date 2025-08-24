@@ -93,7 +93,7 @@ const NoteForm = () => {
 
           const gen_link = `http://localhost:5173/${res.data.noteId}`;
           console.log(gen_link);
-          navigate("/viewnoteslink", { state: { link: gen_link } });
+          navigate("/viewnoteslink", { state: { link: gen_link ,destroyAfter: values.destroyAfter,} });
         } catch (error) {
           console.error("Failed to create note:", error);
         } finally {

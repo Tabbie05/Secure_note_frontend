@@ -1,7 +1,9 @@
 import { Box, Paper, Typography } from "@mui/material";
 import React from "react";
+import { useParams } from "react-router-dom";
 
 function AfterView() {
+  const {id} = useParams()
   return (
     <Box
       sx={{
@@ -48,7 +50,7 @@ function AfterView() {
             color: "#444",
           }}
         >
-          The note with ID <strong>af4ttaVo</strong> was read and has been
+          The note with ID <strong>{id}</strong> was read and has been
           safely destroyed. <br /><br />
           If <strong>you didn’t read</strong> this note, someone else might have
           accessed it. <br /><br />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Paper, Typography, Button } from "@mui/material";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import AfterView from "./AfterView";
@@ -10,6 +10,16 @@ function NoteView() {
   const [isDestroyed, setIsDestroyed] = useState(false);
   const [hasShownNote, setHasShownNote] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch((err) => {
+      console.error(err);
+    });
+  };
 
   useEffect(() => {
     axios
@@ -34,7 +44,6 @@ function NoteView() {
 
   if (loading) return <div>Loading...</div>;
 
-  // Show content once, even if destroy === true (if not already shown)
   if (isDestroyed && !hasShownNote) {
     return <AfterView />;
   }
@@ -61,7 +70,7 @@ function NoteView() {
         }}
       >
         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-          📝Contents of the Note.
+          📝 Contents of the Note.
         </Typography>
 
         <Paper
@@ -80,6 +89,24 @@ function NoteView() {
         >
           {content}
         </Paper>
+
+        <Button
+          variant="outlined"
+          onClick={handleCopy}
+          sx={{
+            bgcolor: copied ? "#2a9aadff" : "gray",
+            color: "white",
+            border: "black",
+            mt: 2,
+            width: 120,
+            "&:hover": {
+              borderColor: "gray",
+              bgcolor: copied ? "#2a9aadff" : "#4d4d4d",
+            },
+          }}
+        >
+          {copied ? "Copied!" : "Copy Text"}
+        </Button>
       </Box>
     </Box>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react"; // <-- Added useRef
 import {
   Box,
   TextField,
@@ -7,16 +7,50 @@ import {
   Paper,
   Stack,
 } from "@mui/material";
-import { copytextnote } from "../constants"; 
-import { useLocation } from "react-router-dom";
-
+import { copytextnote } from "../constants";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 function View() {
   const [showInfo, setShowInfo] = useState(false);
+  const [copied, setCopied] = useState(false); // <-- initialize as false
   const location = useLocation();
   const link = location.state?.link;
+  const destroyAfter = location.state?.destroyAfter;
+  const inputRef = useRef(null); // <-- useRef imported and defined
+  const navigate = useNavigate()
+  const handleCopy = () => {
+    if (inputRef.current) {
+      navigator.clipboard
+        .writeText(inputRef.current.value)
+        .then(() => {
+          setCopied(true); // <-- use setCopied with capital C
+          setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  };
 
   const handleClickInfo = () => {
     setShowInfo((prev) => !prev);
+  };
+
+  const destroyNote = async () => {
+    const id = link?.split("/").pop(); // gets '6c8d219aa5bc' from the link
+
+    if (!id) return;
+    try {
+      const response = axios.put("http://localhost:3000/api/notes/", {
+        id: id,
+      });
+      console.log("note destroyed! id:", id);
+      alert("Note destroyed successfully!");
+      navigate('/')
+    
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -48,7 +82,7 @@ function View() {
 
           <Button
             variant="outlined"
-            onClick={handleClickInfo} 
+            onClick={handleClickInfo}
             sx={{
               minWidth: "40px",
               width: "70px",
@@ -91,7 +125,8 @@ function View() {
           variant="outlined"
           disabled
           id="outlined-disabled"
-          value={link}
+          value={link || ""}
+          inputRef={inputRef}
           InputProps={{
             sx: {
               fontSize: "1.2rem",
@@ -120,7 +155,7 @@ function View() {
             backgroundColor: "#fff8e1",
           }}
         >
-          The note will self-destruct after reading it.
+          The note will self-destruct : {destroyAfter}
         </Paper>
 
         <Box sx={{ width: "100%", mt: 2 }}>
@@ -132,17 +167,18 @@ function View() {
             <Box sx={{ display: "flex", gap: 1 }}>
               <Button
                 variant="outlined"
+                onClick={handleCopy}
                 sx={{
-                  bgcolor: "gray",
+                  bgcolor: copied ? "#2a9aadff" : "gray",
                   color: "white",
                   border: "black",
                   "&:hover": {
-                    bgcolor: "#4d4d4d",
                     borderColor: "gray",
+                    bgcolor: copied ? "#2a9aadff" : "#4d4d4d",
                   },
                 }}
               >
-                Select Link
+                {copied ? "Copied!" : "Copy Link"}
               </Button>
               <Button
                 variant="outlined"
@@ -160,7 +196,7 @@ function View() {
               </Button>
             </Box>
 
-            <Button variant="contained">Destroy the Note now</Button>
+            <Button variant="contained" onClick={destroyNote} >Destroy the Note now</Button>
           </Stack>
         </Box>
       </Box>
