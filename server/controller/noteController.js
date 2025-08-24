@@ -98,3 +98,31 @@ export const getNote = async (req, res) => {
   }
 };
 
+export const deleteNote = async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    if (!id) {
+      return res.status(400).json({ error: 'Note ID is required' });
+    }
+
+    const del_note = await NotesModel.findByIdAndUpdate(
+      id,
+      { destroy: true },
+      { new: true }  // ensures the updated document is returned
+    );
+
+    if (!del_note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    return res.status(200).json({
+      message: 'Note  destroyed successfully',
+      data: del_note,
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error while updating note." });
+  }
+};
