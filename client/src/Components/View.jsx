@@ -17,7 +17,7 @@ function View() {
   const link = location.state?.link;
   const destroyAfter = location.state?.destroyAfter;
   const inputRef = useRef(null); // <-- useRef imported and defined
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const handleCopy = () => {
     if (inputRef.current) {
       navigator.clipboard
@@ -30,6 +30,17 @@ function View() {
           console.error(err);
         });
     }
+  };
+
+  const handleSendLinkToEmail = () => {
+    const subject = encodeURIComponent("Secure Note");
+    const body = encodeURIComponent(
+      `Hi,\n\nHere is the secure note:\n${link}\n\nThis link will expire ${destroyAfter}.`
+    );
+
+    const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+
+    window.open(gmailComposeUrl, "_blank");
   };
 
   const handleClickInfo = () => {
@@ -46,8 +57,7 @@ function View() {
       });
       console.log("note destroyed! id:", id);
       alert("Note destroyed successfully!");
-      navigate('/')
-    
+      navigate("/");
     } catch (err) {
       console.log(err);
     }
@@ -58,7 +68,7 @@ function View() {
       sx={{
         display: "flex",
         justifyContent: "center",
-        alignItems: "flex-start",
+        alignIts: "flex-start",
         minHeight: "90vh",
         backgroundColor: "#c2bfbfff",
         padding: 2,
@@ -182,6 +192,7 @@ function View() {
               </Button>
               <Button
                 variant="outlined"
+                onClick={handleSendLinkToEmail}
                 sx={{
                   bgcolor: "gray",
                   color: "white",
@@ -196,7 +207,9 @@ function View() {
               </Button>
             </Box>
 
-            <Button variant="contained" onClick={destroyNote} >Destroy the Note now</Button>
+            <Button variant="contained" onClick={destroyNote}>
+              Destroy the Note now
+            </Button>
           </Stack>
         </Box>
       </Box>

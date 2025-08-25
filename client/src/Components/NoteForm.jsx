@@ -36,6 +36,7 @@ const NoteForm = () => {
   const handletoggleadd = () => settoggleaddfunc((prev) => !prev);
   const handletoggleEmopicker = () => settoggleemojipicker((prev) => !prev);
 
+ 
   const Yupschema = Yup.object({
     content: Yup.string().required("Note content is required"),
     notificationEmail: Yup.string().email("Invalid email"),
@@ -85,7 +86,22 @@ const NoteForm = () => {
           linkTitle: values.linkTitle,
           passwordHash: values.password,
         };
+
         try {
+          // ✅ 1. Send the email if notificationEmail is present
+          if (values.notificationEmail) {
+            const emailRes = await axios.post(
+              "http://localhost:3000/api/notes/send-destruction-info",
+              {
+                email: values.notificationEmail,
+                destroyAfter: values.destroyAfter,
+              }
+            );
+            console.log("Email response:", emailRes.data);
+            alert(emailRes.data.message); // optional
+          }
+
+          // ✅ 2. Create the note
           const res = await axios.post(
             "http://localhost:3000/api/notes",
             payload
@@ -93,9 +109,12 @@ const NoteForm = () => {
 
           const gen_link = `http://localhost:5173/${res.data.noteId}`;
           console.log(gen_link);
-          navigate("/viewnoteslink", { state: { link: gen_link ,destroyAfter: values.destroyAfter,} });
+          navigate("/viewnoteslink", {
+            state: { link: gen_link, destroyAfter: values.destroyAfter },
+          });
         } catch (error) {
-          console.error("Failed to create note:", error);
+          console.error("Failed to create note or send email:", error);
+          alert("Something went wrong. Check console for details.");
         } finally {
           setSubmitting(false);
         }
@@ -517,6 +536,7 @@ const NoteForm = () => {
                 <Button
                   variant="contained"
                   type="submit"
+                
                   sx={{
                     backgroundColor: "#43464bff",
                     color: "#fff",
