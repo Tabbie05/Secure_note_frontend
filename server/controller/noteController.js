@@ -32,6 +32,7 @@ const createNote = async (req, res) => {
     res.status(201).json({
       message: "Note created successfully",
       noteId: noteDetails.noteId,
+  
     });
   } catch (err) {
     console.error(err);

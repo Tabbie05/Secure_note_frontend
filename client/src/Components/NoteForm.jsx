@@ -36,7 +36,6 @@ const NoteForm = () => {
   const handletoggleadd = () => settoggleaddfunc((prev) => !prev);
   const handletoggleEmopicker = () => settoggleemojipicker((prev) => !prev);
 
- 
   const Yupschema = Yup.object({
     content: Yup.string().required("Note content is required"),
     notificationEmail: Yup.string().email("Invalid email"),
@@ -101,12 +100,11 @@ const NoteForm = () => {
             alert(emailRes.data.message); // optional
           }
 
-          // ✅ 2. Create the note
-          const res = await axios.post(
+                const res = await axios.post(
             "http://localhost:3000/api/notes",
             payload
           );
-
+     
           const gen_link = `http://localhost:5173/${res.data.noteId}`;
           console.log(gen_link);
           navigate("/viewnoteslink", {
@@ -536,7 +534,6 @@ const NoteForm = () => {
                 <Button
                   variant="contained"
                   type="submit"
-                
                   sx={{
                     backgroundColor: "#43464bff",
                     color: "#fff",
