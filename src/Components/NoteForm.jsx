@@ -105,7 +105,7 @@ const NoteForm = () => {
             payload
           );
      
-          const gen_link = `http://localhost:5173/${res.data.noteId}`;
+          const gen_link = `https://mysecurenote.netlify.app/${res.data.noteId}`;
           console.log(gen_link);
           navigate("/viewnoteslink", {
             state: { link: gen_link, destroyAfter: values.destroyAfter },
