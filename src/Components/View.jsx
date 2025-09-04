@@ -52,7 +52,7 @@ function View() {
 
     if (!id) return;
     try {
-      const response = axios.put("http://localhost:3000/api/notes/", {
+      const response = axios.put("https://secure-note-frontend-1.onrender.com/api/notes/", {
         id: id,
       });
       console.log("note destroyed! id:", id);

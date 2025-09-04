@@ -23,7 +23,7 @@ function NoteView() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3000/api/notes/${id}`)
+      .get(`hhttps://secure-note-frontend-1.onrender.com/api/notes/${id}`)
       .then((res) => {
         const note = res.data.data;
         setContent(note.content);

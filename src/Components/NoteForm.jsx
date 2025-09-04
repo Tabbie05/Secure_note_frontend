@@ -90,7 +90,7 @@ const NoteForm = () => {
           // ✅ 1. Send the email if notificationEmail is present
           if (values.notificationEmail) {
             const emailRes = await axios.post(
-              "http://localhost:3000/api/notes/send-destruction-info",
+              "https://secure-note-frontend-1.onrender.com/api/notes/send-destruction-info",
               {
                 email: values.notificationEmail,
                 destroyAfter: values.destroyAfter,
@@ -101,7 +101,7 @@ const NoteForm = () => {
           }
 
                 const res = await axios.post(
-            "http://localhost:3000/api/notes",
+            "https://secure-note-frontend-1.onrender.com/api/notes",
             payload
           );
      
