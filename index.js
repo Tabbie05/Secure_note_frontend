@@ -24,7 +24,14 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => console.log("✅ MongoDB Atlas connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err.message));
+  .catch((err) =>
+    console.error(
+      "❌ MongoDB connection error:",
+      err.message,
+      "uri -> ",
+      process.env.MONGO_URI
+    )
+  );
 
 // Test route
 app.get("/", (req, res) => res.send("Hello world"));
