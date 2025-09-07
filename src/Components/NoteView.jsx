@@ -22,6 +22,7 @@ function NoteView() {
   };
 
   useEffect(async () => {
+    console.log("API IS CALLING")
     await axios
       .get(`hhttps://secure-note-frontend-1.onrender.com/api/notes/${id}`)
       .then((res) => {
