@@ -1,6 +1,6 @@
 import NotesModel from "../models/notes.js";
 import crypto from "crypto";
-
+import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
@@ -16,13 +16,14 @@ const createNote = async (req, res) => {
       showWithoutConfirmation,
       linkTitle,
     } = req.body;
+    const hashed = passwordHash ? await bcrypt.hash(passwordHash, 10) : null;
 
     const noteId = crypto.randomBytes(6).toString("hex");
 
     const noteDetails = await NotesModel.create({
       noteId,
       content,
-      passwordHash,
+      passwordHash: hashed,
       destroyAfter,
       notificationEmail,
       showWithoutConfirmation,
@@ -32,7 +33,6 @@ const createNote = async (req, res) => {
     res.status(201).json({
       message: "Note created successfully",
       noteId: noteDetails.noteId,
-  
     });
   } catch (err) {
     console.error(err);
