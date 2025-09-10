@@ -20,7 +20,7 @@ import * as Yup from "yup";
 import AddIcon from "@mui/icons-material/Add";
 import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 import EmojiPicker from "emoji-picker-react";
-import { expirationOptions, textinfo } from "../constants";
+import { expirationOptions, textinfo, API_BASE_URL } from "../constants";
 import axios from "axios";
 const NoteForm = () => {
   const [toggleinfo, settoggleinfo] = useState(false);
@@ -83,29 +83,28 @@ const NoteForm = () => {
           notificationEmail: values.notificationEmail,
           showWithoutConfirmation: values.showWithoutConfirmation,
           linkTitle: values.linkTitle,
-          passwordHash: values.password,
+          password: values.password,
         };
 
         try {
           // ✅ 1. Send the email if notificationEmail is present
           if (values.notificationEmail) {
             const emailRes = await axios.post(
-              "https://secure-note-frontend-1.onrender.com/api/notes/send-destruction-info",
+              `${API_BASE_URL}/notes/send-destruction-info`,
               {
                 email: values.notificationEmail,
                 destroyAfter: values.destroyAfter,
               }
             );
             console.log("Email response:", emailRes.data);
-            alert(emailRes.data.message); // optional
           }
 
                 const res = await axios.post(
-            "https://secure-note-frontend-1.onrender.com/api/notes",
+            `${API_BASE_URL}/notes`,
             payload
           );
      
-          const gen_link = `https://mysecurenote.netlify.app/${res.data.noteId}`;
+          const gen_link = `${window.location.origin}/${res.data.noteId}`;
           console.log(gen_link);
           navigate("/viewnoteslink", {
             state: { link: gen_link, destroyAfter: values.destroyAfter },

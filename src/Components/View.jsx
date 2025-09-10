@@ -7,7 +7,7 @@ import {
   Paper,
   Stack,
 } from "@mui/material";
-import { copytextnote } from "../constants";
+import { copytextnote, API_BASE_URL } from "../constants";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 function View() {
@@ -52,7 +52,7 @@ function View() {
 
     if (!id) return;
     try {
-      const response = await axios.put("https://secure-note-frontend-1.onrender.com/api/notes/", {
+      const response = await axios.put(`${API_BASE_URL}/notes/`, {
         id: id,
       }); //buggggg
       console.log("note destroyed! id:", id);
