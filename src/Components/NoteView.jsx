@@ -38,8 +38,24 @@ function NoteView() {
       
       setNote(noteData);
       
-      // Check if note has password protection
-      if (noteData.hasPassword) {
+      // Enhanced password protection check with debugging
+      console.log('Full note data:', noteData);
+      console.log('hasPassword field:', noteData.hasPassword, typeof noteData.hasPassword);
+      
+      // More robust password protection check
+      const hasPasswordProtection = Boolean(noteData.hasPassword) && 
+        noteData.hasPassword !== 'false' && 
+        noteData.hasPassword !== '0' && 
+        noteData.hasPassword !== 0 && 
+        noteData.hasPassword !== false;
+
+      console.log('Password protection check:', {
+        hasPassword: noteData.hasPassword,
+        hasPasswordProtection,
+        type: typeof noteData.hasPassword
+      });
+
+      if (hasPasswordProtection) {
         setIsPasswordProtected(true);
         setIsAuthenticated(false);
       } else {
@@ -50,6 +66,7 @@ function NoteView() {
       }
       
     } catch (err) {
+      console.error('Error fetching note:', err);
       if (err.response && err.response.status === 410) {
         setIsDestroyed(true);
       } else {
@@ -85,6 +102,7 @@ function NoteView() {
         setPasswordInput(''); // Clear password input for security
       }
     } catch (err) {
+      console.error('Error verifying password:', err);
       if (err.response && err.response.status === 401) {
         setPasswordError('Incorrect password. Please try again.');
       } else if (err.response && err.response.status === 410) {
@@ -175,7 +193,7 @@ function NoteView() {
             This note is password protected. Enter the password to view its contents.
           </Typography>
 
-          <Box component="div" sx={{ mb: 2 }}>
+          <Box component="form" onSubmit={handlePasswordSubmit} sx={{ mb: 2 }}>
             <TextField
               type="password"
               value={passwordInput}
@@ -196,6 +214,7 @@ function NoteView() {
             )}
 
             <Button
+              type="submit"
               onClick={verifyPassword}
               disabled={isVerifying || !passwordInput.trim()}
               variant="contained"
