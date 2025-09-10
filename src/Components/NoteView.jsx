@@ -13,6 +13,7 @@ function NoteView() {
   const [hasShownNote, setHasShownNote] = useState(false);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState(null); // Added error state
   
   // Password protection states
   const [isPasswordProtected, setIsPasswordProtected] = useState(false);
@@ -22,55 +23,104 @@ function NoteView() {
   const [isVerifying, setIsVerifying] = useState(false);
   
   const handleCopy = () => {
+    // Mobile-safe clipboard handling
+    if (!navigator.clipboard) {
+      // Fallback for older mobile browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = content;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Copy failed:', err);
+      }
+      document.body.removeChild(textArea);
+      return;
+    }
+
     navigator.clipboard.writeText(content).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }).catch((err) => {
-      console.error(err);
+      console.error('Clipboard error:', err);
     });
   };
 
   const fetchNote = async () => {
     console.log("API IS CALLING");
+    
     try {
-      const response = await axios.get(`${API_BASE_URL}/notes/${id}`);
+      // Clear any previous errors
+      setError(null);
+      
+      // Check if API_BASE_URL is defined
+      if (!API_BASE_URL) {
+        throw new Error("API configuration missing");
+      }
+
+      console.log("Fetching from:", `${API_BASE_URL}/notes/${id}`);
+      
+      const response = await axios.get(`${API_BASE_URL}/notes/${id}`, {
+        timeout: 15000, // 15 seconds for mobile networks
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      console.log("API Response received:", response.status);
+      
+      if (!response.data || !response.data.data) {
+        throw new Error("Invalid response format from server");
+      }
+      
       const noteData = response.data.data;
+      console.log("Note data received:", noteData);
       
       setNote(noteData);
       
-      // Enhanced password protection check with debugging
-      console.log('Full note data:', noteData);
-      console.log('hasPassword field:', noteData.hasPassword, typeof noteData.hasPassword);
-      
-      // More robust password protection check
+      // Enhanced password protection check
       const hasPasswordProtection = Boolean(noteData.hasPassword) && 
         noteData.hasPassword !== 'false' && 
         noteData.hasPassword !== '0' && 
         noteData.hasPassword !== 0 && 
         noteData.hasPassword !== false;
 
-      console.log('Password protection check:', {
-        hasPassword: noteData.hasPassword,
-        hasPasswordProtection,
-        type: typeof noteData.hasPassword
-      });
+      console.log('Password protection:', hasPasswordProtection);
 
       if (hasPasswordProtection) {
         setIsPasswordProtected(true);
         setIsAuthenticated(false);
       } else {
         setIsAuthenticated(true);
-        setContent(noteData.content);
+        setContent(noteData.content || '');
         setIsDestroyed(noteData.destroy === true);
         setHasShownNote(true);
       }
       
     } catch (err) {
       console.error('Error fetching note:', err);
-      if (err.response && err.response.status === 410) {
-        setIsDestroyed(true);
+      
+      // Handle different types of errors
+      if (err.response) {
+        // Server responded with error status
+        if (err.response.status === 410) {
+          setIsDestroyed(true);
+          return;
+        } else {
+          setError(`Server Error (${err.response.status}): ${err.response.data?.message || 'Failed to load note'}`);
+        }
+      } else if (err.request) {
+        // Network error
+        setError(`Network Error: Cannot connect to server. Please check your internet connection.`);
+      } else if (err.code === 'ECONNABORTED') {
+        // Timeout
+        setError('Request timeout. Please try again with a better connection.');
       } else {
-        console.error(err);
+        // Other errors
+        setError(err.message || 'Failed to load note. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -89,17 +139,20 @@ function NoteView() {
       
       const response = await axios.post(
         `${API_BASE_URL}/notes/${id}/verify-password`,
-        { password: passwordInput }
+        { password: passwordInput },
+        { timeout: 10000 }
       );
 
-      if (response.data.success) {
+      if (response.data && response.data.success) {
         const noteData = response.data.data;
         setIsAuthenticated(true);
-        setContent(noteData.content);
+        setContent(noteData.content || '');
         setNote(noteData);
         setIsDestroyed(noteData.destroy === true);
         setHasShownNote(true);
-        setPasswordInput(''); // Clear password input for security
+        setPasswordInput('');
+      } else {
+        setPasswordError('Invalid response from server');
       }
     } catch (err) {
       console.error('Error verifying password:', err);
@@ -128,6 +181,15 @@ function NoteView() {
   };
 
   useEffect(() => {
+    console.log("useEffect triggered with ID:", id);
+    console.log("API_BASE_URL:", API_BASE_URL);
+    
+    if (!id) {
+      setError("No note ID provided in URL");
+      setLoading(false);
+      return;
+    }
+    
     fetchNote();
   }, [id]);
 
@@ -150,6 +212,64 @@ function NoteView() {
             Loading note...
           </Typography>
         </Box>
+      </Box>
+    );
+  }
+
+  // Error state - CRITICAL for mobile
+  if (error) {
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          minHeight: "90vh",
+          backgroundColor: "#c2bfbfff",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 3,
+        }}
+      >
+        <Paper
+          elevation={15}
+          sx={{
+            p: 4,
+            maxWidth: 500,
+            width: '100%',
+            borderRadius: 2,
+            textAlign: 'center'
+          }}
+        >
+          <Typography variant="h4" sx={{ mb: 2, fontSize: '3rem' }}>
+            ⚠️
+          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Error Loading Note
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary', fontSize: '0.9rem' }}>
+            {error}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchNote();
+            }}
+            sx={{
+              bgcolor: '#2a9aadff',
+              mb: 2,
+              '&:hover': {
+                bgcolor: '#238a9c',
+              },
+            }}
+          >
+            Try Again
+          </Button>
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+            API: {API_BASE_URL || 'Not configured'}
+          </Typography>
+        </Paper>
       </Box>
     );
   }
@@ -333,7 +453,33 @@ function NoteView() {
     );
   }
 
-  return null;
+  // Fallback for any unhandled states
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "90vh",
+        backgroundColor: "#c2bfbfff",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        p: 3,
+      }}
+    >
+      <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h6">
+          Unexpected state - please refresh the page
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => window.location.reload()}
+          sx={{ mt: 2 }}
+        >
+          Refresh
+        </Button>
+      </Paper>
+    </Box>
+  );
 }
 
 export default NoteView;
