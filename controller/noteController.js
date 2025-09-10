@@ -5,25 +5,32 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-const createNote = async (req, res) => {
-  console.log(req.body);
+/**
+ * Create a new note
+ */
+export const createNote = async (req, res) => {
   try {
     const {
       content,
-      passwordHash,
+      password, // plain password from frontend
       destroyAfter,
       notificationEmail,
       showWithoutConfirmation,
       linkTitle,
     } = req.body;
-    const hashed = passwordHash ? await bcrypt.hash(passwordHash, 10) : null;
 
     const noteId = crypto.randomBytes(6).toString("hex");
+
+    // Hash password if provided
+    let passwordHash = null;
+    if (password && password.trim()) {
+      passwordHash = await bcrypt.hash(password.trim(), 12);
+    }
 
     const noteDetails = await NotesModel.create({
       noteId,
       content,
-      passwordHash: hashed,
+      passwordHash,
       destroyAfter,
       notificationEmail,
       showWithoutConfirmation,
@@ -35,13 +42,14 @@ const createNote = async (req, res) => {
       noteId: noteDetails.noteId,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Create Note Error:", err);
     res.status(500).json({ error: "Failed to create note" });
   }
 };
 
-export default createNote;
-
+/**
+ * Get note metadata or content
+ */
 export const getNote = async (req, res) => {
   const noteId = req.params.id;
 
@@ -58,60 +66,144 @@ export const getNote = async (req, res) => {
 
     const now = Date.now();
     let shouldDestroy = false;
+    const age = now - new Date(note.createdAt).getTime();
 
-    if (note.destroyAfter === "After reading") {
-      // Show the note once, then mark it destroyed
-      res.status(200).json({
-        message: "Note found successfully!",
-        data: note,
-      });
-
-      note.destroy = true;
-      await note.save();
-      return;
-    }
-
-    // Check if the note is expired by time
-    const age = now - note.createdAt;
-
+    // Expiry checks
     if (note.destroyAfter === "After 1 hour" && age >= 60 * 60 * 1000) {
       shouldDestroy = true;
-    } else if (
-      note.destroyAfter === "After 24 hours" &&
-      age >= 24 * 60 * 60 * 1000
-    ) {
+    } else if (note.destroyAfter === "After 24 hours" && age >= 24 * 60 * 60 * 1000) {
       shouldDestroy = true;
-    } else if (
-      note.destroyAfter === "After 7 days" &&
-      age >= 7 * 24 * 60 * 60 * 1000
-    ) {
+    } else if (note.destroyAfter === "After 7 days" && age >= 7 * 24 * 60 * 60 * 1000) {
       shouldDestroy = true;
-    } else if (
-      note.destroyAfter === "After 30 days" &&
-      age >= 30 * 24 * 60 * 60 * 1000
-    ) {
+    } else if (note.destroyAfter === "After 30 days" && age >= 30 * 24 * 60 * 60 * 1000) {
       shouldDestroy = true;
     }
 
     if (shouldDestroy) {
       note.destroy = true;
       await note.save();
-      return res
-        .status(410)
-        .json({ message: "This note has expired/destroyed!" });
+      return res.status(410).json({ message: "This note has expired/destroyed!" });
     }
 
-    // If all good, return the note
+    // If password protected → don’t send content yet
+    if (note.passwordHash) {
+      return res.status(200).json({
+        message: "Note found successfully!",
+        data: {
+          noteId: note.noteId,
+          linkTitle: note.linkTitle,
+          createdAt: note.createdAt,
+          destroyAfter: note.destroyAfter,
+          hasPassword: true,
+        },
+      });
+    }
+
+    // If destroy after reading → return content then destroy
+    if (note.destroyAfter === "After reading") {
+      const safeNote = note.toObject();
+      delete safeNote.passwordHash;
+
+      note.destroy = true;
+      await note.save();
+
+      return res.status(200).json({
+        message: "Note found successfully!",
+        data: safeNote,
+      });
+    }
+
+    // Otherwise return the full note
+    const safeNote = note.toObject();
+    delete safeNote.passwordHash;
+
     return res.status(200).json({
       message: "Note found successfully!",
-      data: note,
+      data: safeNote,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Get Note Error:", err);
     res.status(500).json({ error: "Server error while fetching note." });
   }
 };
 
+/**
+ * Verify password and return content
+ */
+export const verifyNotePassword = async (req, res) => {
+  const noteId = req.params.id;
+  const { password } = req.body;
+
+  try {
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Password is required" });
+    }
+
+    const note = await NotesModel.findOne({ noteId });
+
+    if (!note) {
+      return res.status(404).json({ success: false, message: "Note not found" });
+    }
+
+    if (note.destroy === true) {
+      return res.status(410).json({ success: false, message: "This note has been destroyed!" });
+    }
+
+    if (!note.passwordHash) {
+      return res.status(400).json({ success: false, message: "Note is not password protected" });
+    }
+
+    // Expiry check
+    const now = Date.now();
+    const age = now - new Date(note.createdAt).getTime();
+    let shouldDestroy = false;
+
+    if (note.destroyAfter === "After 1 hour" && age >= 60 * 60 * 1000) {
+      shouldDestroy = true;
+    } else if (note.destroyAfter === "After 24 hours" && age >= 24 * 60 * 60 * 1000) {
+      shouldDestroy = true;
+    } else if (note.destroyAfter === "After 7 days" && age >= 7 * 24 * 60 * 60 * 1000) {
+      shouldDestroy = true;
+    } else if (note.destroyAfter === "After 30 days" && age >= 30 * 24 * 60 * 60 * 1000) {
+      shouldDestroy = true;
+    }
+
+    if (shouldDestroy) {
+      note.destroy = true;
+      await note.save();
+      return res.status(410).json({ success: false, message: "This note has expired/destroyed!" });
+    }
+
+    // Verify password
+    const isPasswordCorrect = await bcrypt.compare(password, note.passwordHash);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ success: false, message: "Incorrect password" });
+    }
+
+    // If correct, prepare safe note (without passwordHash)
+    const safeNote = note.toObject();
+    delete safeNote.passwordHash;
+
+    if (note.destroyAfter === "After reading") {
+      note.destroy = true;
+      await note.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Password verified successfully!",
+      data: safeNote,
+    });
+  } catch (error) {
+    console.error("Verify Password Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+/**
+ * Delete/destroy note by noteId
+ */
 export const deleteNote = async (req, res) => {
   const { id } = req.body;
 
@@ -120,10 +212,10 @@ export const deleteNote = async (req, res) => {
       return res.status(400).json({ error: "Note ID is required" });
     }
 
-    const del_note = await NotesModel.findByIdAndUpdate(
-      id,
+    const del_note = await NotesModel.findOneAndUpdate(
+      { noteId: id },
       { destroy: true },
-      { new: true } // ensures the updated document is returned
+      { new: true }
     );
 
     if (!del_note) {
@@ -131,15 +223,18 @@ export const deleteNote = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "Note  destroyed successfully",
+      message: "Note destroyed successfully",
       data: del_note,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Delete Note Error:", err);
     return res.status(500).json({ error: "Server error while updating note." });
   }
 };
 
+/**
+ * Send destruction email
+ */
 export const SendDestructionMssgToEmail = async (req, res) => {
   const { email, destroyAfter } = req.body;
 
@@ -150,8 +245,9 @@ export const SendDestructionMssgToEmail = async (req, res) => {
       pass: process.env.EMAIL_PASS,
     },
   });
+
   const mailOptions = {
-    from: `"Secure Note" <${process.env.EMAIL_USER}>`,
+    from: `Secure Note <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Note Destruction Info",
     text: `Hi,\n\nThis is to inform you that your note will be destroyed: ${destroyAfter}.\n\nThank you,\nSecure Note`,

@@ -1,43 +1,32 @@
-// index.js
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import router from "./routes/notesRoutes.js"; // Make sure this file exists and exports a valid router
+import router from "./routes/notesRoutes.js";
 import dotenv from "dotenv";
 
-// Load environment variables from .env
 dotenv.config();
-
 const app = express();
 
-// Middleware
-app.use(cors());
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "").split(",").map(o => o.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  }
+}));
 app.use(express.json());
+app.use("/api/notes", router);  
 
-// API routes
-app.use("/api/notes", router);
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/notesdb";
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(console.error);
 
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB Atlas connected"))
-  .catch((err) =>
-    console.error(
-      "❌ MongoDB connection error:",
-      err.message,
-      "uri -> ",
-      process.env.MONGO_URI
-    )
-  );
-
-// Test route
 app.get("/", (req, res) => res.send("Hello world"));
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

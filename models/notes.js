@@ -17,7 +17,7 @@ const notesSchema = mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now(),
-    expires:"after reading"
+    // Removing invalid TTL as destroy-after-reading is handled in controller
   },
   passwordHash: {
     type: String,
