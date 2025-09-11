@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/notes", router);
+app.use("/notes", router);
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/notesdb";
 mongoose.connect(MONGODB_URI)
