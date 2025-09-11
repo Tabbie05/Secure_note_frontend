@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors";
+
 import mongoose from "mongoose";
 import router from "./routes/notesRoutes.js";
 import dotenv from "dotenv";
@@ -7,15 +7,6 @@ import dotenv from "dotenv";
 dotenv.config();
 const app = express();
 
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "").split(",").map(o => o.trim()).filter(Boolean);
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error("Not allowed by CORS"));
-  }
-}));
 app.use(express.json());
 app.use("/api/notes", router);  
 
