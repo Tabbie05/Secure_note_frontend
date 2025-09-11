@@ -27,4 +27,4 @@ export const copytextnote = `Copy the link, paste it into an email or instant me
 
 // API Configuration
 // For local testing, use localhost. For production, use the deployed URL
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+export const API_BASE_URL = "https://secure-note-frontend.onrender.com" || 'http://localhost:3000/api';
